@@ -1,0 +1,16 @@
+[package]
+name = "update_maa_resource_script"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+reqwest = { version = "0.12.5", features = ["blocking", "json", "stream"] }
+indicatif = "0.17.8"
+owo-colors = "4.0.0"
+zip = "2.1.6"
+console = "0.15.8"
+spinoff = "0.8.0"
+anyhow = { version = "1.0"}
+chrono = "0.4"
+tokio = { version = "1", features = ["rt", "macros", "rt-multi-thread"] }
+futures-util = "0.3.30"
