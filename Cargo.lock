@@ -1596,6 +1596,8 @@ dependencies = [
  "indicatif",
  "owo-colors",
  "reqwest",
+ "serde",
+ "serde_json",
  "spinoff",
  "tokio",
  "zip",

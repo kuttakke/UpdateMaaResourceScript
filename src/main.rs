@@ -1,4 +1,5 @@
 use futures_util::StreamExt;
+use serde_json::Value;
 use spinoff::{spinners, Color, Spinner, Streams};
 use std::cmp::min;
 use std::path::PathBuf;
@@ -10,7 +11,6 @@ use std::{
 use anyhow::Result;
 use chrono::{DateTime, Local, TimeZone, Utc};
 use indicatif::{ProgressBar, ProgressStyle};
-use std::collections::HashMap;
 use std::fs::File;
 use zip::ZipArchive;
 
@@ -56,11 +56,13 @@ async fn is_github_updated_after(time: &str) -> Result<bool> {
 
     let client = reqwest::Client::new();
 
-    let response = client.get(&url).send().await?;
-
+    let response = client.get(&url).header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0").send().await?;
+    println!("response status: {}", response.status());
     if response.status().is_success() {
-        let commits: HashMap<String, String> = response.json().await?;
-        if commits.len() > 0 {
+        // let text = &response.text().await?;
+        // println!("response text: {}", text);
+        let commits = response.json::<Value>().await?;
+        if commits.as_array().expect("无法解析commits数组").len() > 0 {
             return Ok(true);
         }
     }
@@ -84,6 +86,7 @@ async fn is_need_update(path: &PathBuf) -> bool {
         // } else {
         //     return false;
         // }
+        println!("上次更新时间：{}", formatted_datetime);
         match is_github_updated_after(&formatted_datetime).await {
             Ok(true) => {
                 return true;
@@ -284,8 +287,8 @@ async fn main() {
         Streams::Stderr,
     );
     let now = Local::now().timestamp();
-    let mut file = File::create(root.join("last_update_time.txt"))
-        .expect("无法创建上次更新时间文件");
+    let mut file =
+        File::create(root.join("last_update_time.txt")).expect("无法创建上次更新时间文件");
     file.write_all(now.to_string().as_bytes())
         .expect("无法写入上次更新时间文件");
     spinner5.stop_and_persist("✔️", "更新上次更新时间成功");
